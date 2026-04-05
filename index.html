@@ -2,201 +2,565 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RFN Pterodactyl</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>RFN Pterodactyl | Manajemen Panel</title>
+    <!-- Tailwind CSS + Font Awesome + Google Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0f0f1a; }
+        .glass-card { background: rgba(18, 18, 30, 0.9); backdrop-filter: blur(2px); border: 1px solid rgba(66, 66, 90, 0.5); }
+        .modal-transition { transition: opacity 0.2s ease, visibility 0.2s; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #1e1e2a; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
+        .table-container { overflow-x: auto; border-radius: 1rem; }
+        .btn-primary { background: #4f46e5; transition: all 0.2s; }
+        .btn-primary:hover { background: #6366f1; transform: translateY(-1px); }
+        .btn-danger { background: #dc2626; transition: all 0.2s; }
+        .btn-danger:hover { background: #ef4444; }
+        .btn-secondary { background: #2d2d3a; border: 1px solid #3f3f4e; }
+        .btn-secondary:hover { background: #3a3a4a; }
+        input, select, textarea { background: #14141f; border: 1px solid #2c2c3a; color: #eef2ff; border-radius: 12px; padding: 10px 14px; outline: none; transition: all 0.2s; }
+        input:focus, select:focus, textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.3); }
+        label { font-weight: 500; color: #cbd5e6; margin-bottom: 6px; display: block; }
+        .badge { background: #2a2a3c; padding: 4px 12px; border-radius: 40px; font-size: 0.75rem; font-weight: 500; }
+    </style>
 </head>
-<body class="bg-gray-900 text-white font-sans p-8">
+<body class="text-gray-200 antialiased">
 
-    <div class="max-w-5xl mx-auto">
-        <h1 class="text-3xl font-bold mb-6 text-blue-400">RFN Pterodactyl</h1>
-
-        <div id="loginSection" class="bg-gray-800 p-6 rounded-lg mb-8 shadow-lg">
-            <h2 class="text-xl font-semibold mb-4">Koneksi Panel</h2>
-            <div class="flex gap-4">
-                <input type="text" id="domain" placeholder="https://panel.example.com" class="w-1/2 p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-400">
-                <input type="password" id="apiKey" placeholder="PLTA Key" class="w-1/2 p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-400">
-                <button onclick="app.connect()" class="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded font-bold transition">Masuk</button>
-            </div>
-            <p id="loginError" class="text-red-400 mt-2 text-sm hidden"></p>
-        </div>
-
-        <div id="dashboard" class="hidden space-y-8">
-            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold">Daftar Users</h2>
-                    <button onclick="app.toggleModal('userModal')" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded text-sm font-bold">Buat User</button>
+    <div class="min-h-screen flex flex-col">
+        <!-- HEADER -->
+        <header class="border-b border-gray-800 bg-[#0a0a12] sticky top-0 z-20">
+            <div class="max-w-7xl mx-auto px-5 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-dragon text-3xl text-indigo-400"></i>
+                    <span class="font-bold text-2xl tracking-tight bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">RFN Pterodactyl</span>
                 </div>
-                <div id="usersList" class="space-y-2"></div>
+                <div id="logoutContainer" class="hidden">
+                    <button id="logoutBtn" class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 max-w-7xl w-full mx-auto px-5 py-8">
+            <!-- LOGIN / CONFIGURATION CARD -->
+            <div id="loginSection" class="flex justify-center items-center min-h-[70vh]">
+                <div class="glass-card rounded-2xl p-8 w-full max-w-lg shadow-2xl border border-indigo-500/20">
+                    <div class="text-center mb-6">
+                        <i class="fas fa-cloud-upload-alt text-5xl text-indigo-400 mb-3"></i>
+                        <h2 class="text-2xl font-bold">Hubungkan ke Panel</h2>
+                        <p class="text-gray-400 text-sm mt-1">Masukkan URL panel & API Key (Application)</p>
+                    </div>
+                    <div class="space-y-5">
+                        <div>
+                            <label><i class="fas fa-link mr-1"></i> Domain Panel</label>
+                            <input type="text" id="panelDomain" placeholder="https://panel.domain.com" class="w-full" value="https://demo.pterodactyl.com">
+                            <p class="text-xs text-gray-500 mt-1">Contoh: https://panel.example.com (tanpa slash akhir)</p>
+                        </div>
+                        <div>
+                            <label><i class="fas fa-key mr-1"></i> Pterodactyl API Key (Application)</label>
+                            <input type="password" id="apiKey" placeholder="ptlc_xxxxxxxxxxxxxxxxxxxx" class="w-full">
+                            <p class="text-xs text-gray-500 mt-1">Dapatkan dari Panel → Admin API → Credentials</p>
+                        </div>
+                        <button id="connectBtn" class="btn-primary w-full py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2"><i class="fas fa-plug"></i> Hubungkan & Dashboard</button>
+                    </div>
+                    <div id="loginError" class="mt-4 text-red-400 text-sm text-center hidden"></div>
+                </div>
             </div>
 
-            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold">Daftar Servers</h2>
-                    <button onclick="app.toggleModal('serverModal')" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded text-sm font-bold">Buat Server</button>
+            <!-- DASHBOARD SECTION (hidden awal) -->
+            <div id="dashboardSection" class="hidden">
+                <!-- Tabs & Info bar -->
+                <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+                    <div class="flex gap-2 bg-[#11111b] p-1 rounded-xl">
+                        <button id="tabUsersBtn" class="tab-btn px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"><i class="fas fa-users"></i> Users</button>
+                        <button id="tabServersBtn" class="tab-btn px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"><i class="fas fa-server"></i> Servers</button>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm bg-black/40 px-4 py-2 rounded-full">
+                        <i class="fas fa-globe text-indigo-400"></i>
+                        <span class="font-mono text-indigo-300" id="activeDomainDisplay"></span>
+                        <button id="refreshDataBtn" class="ml-2 bg-gray-700 hover:bg-gray-600 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-sync-alt text-xs"></i></button>
+                    </div>
                 </div>
-                <div id="serversList" class="space-y-2"></div>
+
+                <!-- USERS PANEL -->
+                <div id="usersPanel" class="space-y-5">
+                    <div class="flex justify-between items-center flex-wrap gap-3">
+                        <h3 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-user-plus text-indigo-400"></i> Manajemen Users</h3>
+                        <button id="createUserBtn" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2"><i class="fas fa-plus-circle"></i> Buat User Baru</button>
+                    </div>
+                    <div class="table-container glass-card rounded-xl overflow-hidden">
+                        <table class="min-w-full divide-y divide-gray-800">
+                            <thead class="bg-[#0e0e18]">
+                                <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
+                                    <th class="px-5 py-3">ID</th><th class="px-5 py-3">Username</th><th class="px-5 py-3">Email</th><th class="px-5 py-3">Nama</th><th class="px-5 py-3">Admin</th><th class="px-5 py-3 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody" class="divide-y divide-gray-800/60 bg-[#0f0f17]">
+                                <tr><td colspan="6" class="text-center py-8 text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i> Memuat users...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SERVERS PANEL -->
+                <div id="serversPanel" class="hidden space-y-5">
+                    <div class="flex justify-between items-center flex-wrap gap-3">
+                        <h3 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-plus-circle text-indigo-400"></i> Manajemen Servers</h3>
+                        <button id="createServerBtn" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2"><i class="fas fa-hdd"></i> Buat Server Baru</button>
+                    </div>
+                    <div class="table-container glass-card rounded-xl overflow-hidden">
+                        <table class="min-w-full divide-y divide-gray-800">
+                            <thead class="bg-[#0e0e18]"><tr class="text-left text-xs font-semibold text-gray-400"><th class="px-5 py-3">ID</th><th class="px-5 py-3">Nama Server</th><th class="px-5 py-3">Pemilik (User)</th><th class="px-5 py-3">Deskripsi</th><th class="px-5 py-3 text-center">Aksi</th></tr></thead>
+                            <tbody id="serversTableBody" class="divide-y divide-gray-800/60 bg-[#0f0f17]"><tr><td colspan="5" class="text-center py-8 text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i> Memuat servers...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-        </div>
+        </main>
     </div>
 
-    <div id="userModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center">
-        <div class="bg-gray-800 p-6 rounded-lg w-96">
-            <h2 class="text-xl font-bold mb-4">Buat User Baru</h2>
-            <input type="email" id="uEmail" placeholder="Email" class="w-full p-2 mb-3 rounded bg-gray-700 border border-gray-600">
-            <input type="text" id="uUsername" placeholder="Username" class="w-full p-2 mb-3 rounded bg-gray-700 border border-gray-600">
-            <input type="text" id="uFirst" placeholder="First Name" class="w-full p-2 mb-3 rounded bg-gray-700 border border-gray-600">
-            <input type="text" id="uLast" placeholder="Last Name" class="w-full p-2 mb-4 rounded bg-gray-700 border border-gray-600">
-            <div class="flex justify-end gap-2">
-                <button onclick="app.toggleModal('userModal')" class="bg-gray-600 px-4 py-2 rounded">Batal</button>
-                <button onclick="app.createUser()" class="bg-blue-600 px-4 py-2 rounded">Simpan</button>
+    <!-- MODAL GENERIK (untuk create/edit user/server) -->
+    <div id="genericModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 hidden modal-transition">
+        <div class="glass-card rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4 p-6 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
+                <h3 id="modalTitle" class="text-xl font-bold flex items-center gap-2"><i class="fas fa-pen"></i> Form</h3>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-white text-2xl">&times;</button>
             </div>
-        </div>
-    </div>
-
-    <div id="serverModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center">
-        <div class="bg-gray-800 p-6 rounded-lg w-96">
-            <h2 class="text-xl font-bold mb-4">Buat Server Baru</h2>
-            <input type="text" id="sName" placeholder="Nama Server" class="w-full p-2 mb-3 rounded bg-gray-700 border border-gray-600">
-            <input type="number" id="sOwner" placeholder="User ID Pemilik" class="w-full p-2 mb-3 rounded bg-gray-700 border border-gray-600">
-            <input type="number" id="sNode" placeholder="Node ID" class="w-full p-2 mb-3 rounded bg-gray-700 border border-gray-600">
-            <input type="number" id="sAllocation" placeholder="Allocation ID" class="w-full p-2 mb-3 rounded bg-gray-700 border border-gray-600">
-            <input type="number" id="sMemory" value="4000" placeholder="RAM Limit (MB)" class="w-full p-2 mb-3 rounded bg-gray-700 border border-gray-600">
-            <input type="number" id="sDisk" placeholder="Disk Limit (MB)" class="w-full p-2 mb-4 rounded bg-gray-700 border border-gray-600">
-            <div class="flex justify-end gap-2">
-                <button onclick="app.toggleModal('serverModal')" class="bg-gray-600 px-4 py-2 rounded">Batal</button>
-                <button onclick="app.createServer()" class="bg-blue-600 px-4 py-2 rounded">Simpan</button>
+            <div id="modalBody" class="space-y-4"></div>
+            <div class="flex justify-end gap-3 pt-5 mt-2 border-t border-gray-700">
+                <button id="modalCancelBtn" class="btn-secondary px-5 py-2 rounded-xl">Batal</button>
+                <button id="modalSubmitBtn" class="btn-primary px-5 py-2 rounded-xl">Simpan</button>
             </div>
         </div>
     </div>
 
     <script>
-        const app = {
-            domain: '',
-            apiKey: '',
+        // ---------- GLOBAL STATE ----------
+        let panelDomain = "";
+        let apiKey = "";
+        let currentUsers = [];      // menyimpan list users untuk dropdown
+        let currentServers = [];
 
-            async fetchAPI(endpoint, method = 'GET', body = null) {
-                const url = `${this.domain}/api/application/${endpoint}`;
-                const options = {
-                    method,
-                    headers: {
-                        'Authorization': `Bearer ${this.apiKey}`,
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                };
-                if (body) options.body = JSON.stringify(body);
+        // DOM elements
+        const loginSection = document.getElementById('loginSection');
+        const dashboardSection = document.getElementById('dashboardSection');
+        const logoutContainer = document.getElementById('logoutContainer');
+        const connectBtn = document.getElementById('connectBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const tabUsersBtn = document.getElementById('tabUsersBtn');
+        const tabServersBtn = document.getElementById('tabServersBtn');
+        const usersPanel = document.getElementById('usersPanel');
+        const serversPanel = document.getElementById('serversPanel');
+        const usersTableBody = document.getElementById('usersTableBody');
+        const serversTableBody = document.getElementById('serversTableBody');
+        const refreshBtn = document.getElementById('refreshDataBtn');
+        const activeDomainDisplay = document.getElementById('activeDomainDisplay');
+        const loginErrorDiv = document.getElementById('loginError');
 
+        // Modal
+        const modal = document.getElementById('genericModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        const modalSubmitBtn = document.getElementById('modalSubmitBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        let currentModalCallback = null; // function (formData) => Promise
+
+        // Helper: API request ke Pterodactyl
+        async function apiRequest(endpoint, method, body = null) {
+            const baseUrl = panelDomain.replace(/\/$/, '');
+            const url = `${baseUrl}/api/application${endpoint}`;
+            const headers = {
+                'Authorization': `Bearer ${apiKey}`,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            };
+            const options = { method, headers };
+            if (body) options.body = JSON.stringify(body);
+            
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                let errorMsg = `HTTP ${response.status}`;
                 try {
-                    const res = await fetch(url, options);
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.errors?.[0]?.detail || 'Terjadi kesalahan');
-                    return data;
-                } catch (err) {
-                    alert('Error: ' + err.message);
-                    return null;
-                }
-            },
-
-            async connect() {
-                this.domain = document.getElementById('domain').value.replace(/\/$/, '');
-                this.apiKey = document.getElementById('apiKey').value;
-
-                if (!this.domain || !this.apiKey) return;
-
-                const check = await this.fetchAPI('users');
-                if (check) {
-                    document.getElementById('loginSection').classList.add('hidden');
-                    document.getElementById('dashboard').classList.remove('hidden');
-                    this.loadUsers();
-                    this.loadServers();
-                } else {
-                    const errEl = document.getElementById('loginError');
-                    errEl.textContent = 'Gagal terhubung. Cek Domain, Key, atau CORS.';
-                    errEl.classList.remove('hidden');
-                }
-            },
-
-            async loadUsers() {
-                const el = document.getElementById('usersList');
-                el.innerHTML = 'Memuat...';
-                const res = await this.fetchAPI('users');
-                if (res && res.data) {
-                    el.innerHTML = res.data.map(u => `
-                        <div class="p-3 bg-gray-700 rounded flex justify-between items-center border border-gray-600">
-                            <div>
-                                <p class="font-bold">${u.attributes.username} (ID: ${u.attributes.id})</p>
-                                <p class="text-xs text-gray-400">${u.attributes.email}</p>
-                            </div>
-                        </div>
-                    `).join('');
-                }
-            },
-
-            async loadServers() {
-                const el = document.getElementById('serversList');
-                el.innerHTML = 'Memuat...';
-                const res = await this.fetchAPI('servers');
-                if (res && res.data) {
-                    el.innerHTML = res.data.map(s => `
-                        <div class="p-3 bg-gray-700 rounded flex justify-between items-center border border-gray-600">
-                            <div>
-                                <p class="font-bold">${s.attributes.name} (ID: ${s.attributes.id})</p>
-                                <p class="text-xs text-gray-400">Node: ${s.attributes.node} | RAM: ${s.attributes.limits.memory}MB</p>
-                            </div>
-                        </div>
-                    `).join('');
-                }
-            },
-
-            toggleModal(id) {
-                const el = document.getElementById(id);
-                el.classList.toggle('hidden');
-            },
-
-            async createUser() {
-                const body = {
-                    email: document.getElementById('uEmail').value,
-                    username: document.getElementById('uUsername').value,
-                    first_name: document.getElementById('uFirst').value,
-                    last_name: document.getElementById('uLast').value
-                };
-                const res = await this.fetchAPI('users', 'POST', body);
-                if (res) {
-                    this.toggleModal('userModal');
-                    this.loadUsers();
-                }
-            },
-
-            async createServer() {
-                const body = {
-                    name: document.getElementById('sName').value,
-                    user: parseInt(document.getElementById('sOwner').value),
-                    node: parseInt(document.getElementById('sNode').value),
-                    allocation: { default: parseInt(document.getElementById('sAllocation').value) },
-                    limits: {
-                        memory: parseInt(document.getElementById('sMemory').value),
-                        swap: 0,
-                        disk: parseInt(document.getElementById('sDisk').value),
-                        io: 500,
-                        cpu: 100
-                    },
-                    environment: {
-                        SERVER_JARFILE: "server.jar" 
-                    },
-                    feature_limits: { databases: 0, backups: 0 },
-                    egg: 1, 
-                    docker_image: "ghcr.io/pterodactyl/yolks:java_17", 
-                    startup: "java -Xms128M -Xmx{{SERVER_MEMORY}}M -jar {{SERVER_JARFILE}}" 
-                };
-
-                const res = await this.fetchAPI('servers', 'POST', body);
-                if (res) {
-                    this.toggleModal('serverModal');
-                    this.loadServers();
-                }
+                    const errData = await response.json();
+                    errorMsg = errData.errors?.[0]?.detail || errData.message || errorMsg;
+                } catch(e) {}
+                throw new Error(`Gagal ${method} ${endpoint}: ${errorMsg}`);
             }
-        };
+            if (response.status === 204) return null;
+            return await response.json();
+        }
+
+        // ---------- USERS CRUD ----------
+        async function fetchUsers() {
+            const data = await apiRequest('/users', 'GET');
+            return data.data || [];
+        }
+
+        async function createUserApi(userData) {
+            const payload = {
+                email: userData.email,
+                username: userData.username,
+                first_name: userData.first_name,
+                last_name: userData.last_name,
+                password: userData.password
+            };
+            const result = await apiRequest('/users', 'POST', payload);
+            return result.data;
+        }
+
+        async function updateUserApi(userId, updates) {
+            // hanya kirim field yang diizinkan
+            const payload = {};
+            if (updates.email) payload.email = updates.email;
+            if (updates.username) payload.username = updates.username;
+            if (updates.first_name) payload.first_name = updates.first_name;
+            if (updates.last_name) payload.last_name = updates.last_name;
+            if (updates.password && updates.password.trim() !== "") payload.password = updates.password;
+            const result = await apiRequest(`/users/${userId}`, 'PATCH', payload);
+            return result.data;
+        }
+
+        async function deleteUserApi(userId) {
+            await apiRequest(`/users/${userId}`, 'DELETE');
+        }
+
+        // ---------- SERVERS CRUD (minimal: nama, deskripsi, owner dll untuk create) ----------
+        async function fetchServers() {
+            const data = await apiRequest('/servers', 'GET');
+            return data.data || [];
+        }
+
+        async function createServerApi(serverData) {
+            // minimal payload sesuai dokumentasi: name, user, egg, node, nest, allocations & limits.
+            // Kita minta field wajib: name, user_id, nest_id, egg_id, node_id, memory, disk, cpu, swap
+            const payload = {
+                name: serverData.name,
+                user: serverData.user_id,
+                nest: serverData.nest_id,
+                egg: serverData.egg_id,
+                node: serverData.node_id,
+                description: serverData.description || "",
+                limits: {
+                    memory: parseInt(serverData.memory),
+                    disk: parseInt(serverData.disk),
+                    cpu: parseInt(serverData.cpu),
+                    swap: parseInt(serverData.swap)
+                },
+                feature_limits: {
+                    databases: serverData.databases || 1,
+                    allocations: serverData.allocations || 1
+                }
+            };
+            // allocation default: butuh minimal satu allocation, kita minta user nanti mengisi port? bisa skip karena butuh port tersedia. Untuk demo sederhana kita asumsikan API dapat otomatis pakai default allocation jika ada.
+            // Lebih baik kita set dummy allocation_ids? risiko error. Tapi agar tidak terlalu kompleks, kita panggil tanpa allocation_ids, Pterodactyl akan memilih otomatis jika node punya alokasi.
+            // Jika error akan tampil.
+            const result = await apiRequest('/servers', 'POST', payload);
+            return result.data;
+        }
+
+        async function updateServerApi(serverId, updates) {
+            // hanya update nama & deskripsi (simple)
+            const payload = {};
+            if (updates.name) payload.name = updates.name;
+            if (updates.description !== undefined) payload.description = updates.description;
+            const result = await apiRequest(`/servers/${serverId}`, 'PATCH', payload);
+            return result.data;
+        }
+
+        async function deleteServerApi(serverId) {
+            await apiRequest(`/servers/${serverId}`, 'DELETE');
+        }
+
+        // Render Users Table
+        async function renderUsersTable() {
+            try {
+                currentUsers = await fetchUsers();
+                if (!currentUsers.length) {
+                    usersTableBody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400"><i class="fas fa-user-slash"></i> Tidak ada user ditemukan</td></tr>`;
+                    return;
+                }
+                let html = '';
+                for (const user of currentUsers) {
+                    const attrs = user.attributes;
+                    html += `<tr class="hover:bg-white/5 transition">
+                        <td class="px-5 py-3 font-mono text-sm">${attrs.id}</td>
+                        <td class="px-5 py-3 font-medium">${escapeHtml(attrs.username)}</td>
+                        <td class="px-5 py-3">${escapeHtml(attrs.email)}</td>
+                        <td class="px-5 py-3">${escapeHtml(attrs.first_name)} ${escapeHtml(attrs.last_name)}</td>
+                        <td class="px-5 py-3"><span class="badge ${attrs.root_admin ? 'bg-purple-900 text-purple-200' : 'bg-gray-700'}">${attrs.root_admin ? 'Admin' : 'User'}</span></td>
+                        <td class="px-5 py-3 text-center">
+                            <button class="edit-user text-indigo-400 hover:text-indigo-300 mr-3" data-id="${attrs.id}" data-username="${escapeHtml(attrs.username)}" data-email="${escapeHtml(attrs.email)}" data-first="${escapeHtml(attrs.first_name)}" data-last="${escapeHtml(attrs.last_name)}" data-admin="${attrs.root_admin}"><i class="fas fa-edit"></i> Edit</button>
+                            <button class="delete-user text-red-400 hover:text-red-300" data-id="${attrs.id}" data-name="${escapeHtml(attrs.username)}"><i class="fas fa-trash-alt"></i> Hapus</button>
+                        </td>
+                    </tr>`;
+                }
+                usersTableBody.innerHTML = html;
+                // attach event
+                document.querySelectorAll('.edit-user').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = btn.dataset.id;
+                        const username = btn.dataset.username;
+                        const email = btn.dataset.email;
+                        const first = btn.dataset.first;
+                        const last = btn.dataset.last;
+                        openEditUserModal(id, username, email, first, last);
+                    });
+                });
+                document.querySelectorAll('.delete-user').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const id = btn.dataset.id;
+                        const name = btn.dataset.name;
+                        if(confirm(`Yakin hapus user "${name}"? Semua server miliknya juga bisa terdampak.`)) {
+                            try {
+                                await deleteUserApi(id);
+                                showToast("User berhasil dihapus", "success");
+                                await renderUsersTable();
+                                await renderServersTable(); // refresh servers juga karena owner berubah
+                            } catch(err) {
+                                showToast("Gagal hapus: " + err.message, "error");
+                            }
+                        }
+                    });
+                });
+            } catch (err) {
+                usersTableBody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-400"><i class="fas fa-exclamation-triangle"></i> Error: ${err.message}</td></tr>`;
+                showToast("Gagal memuat users", "error");
+            }
+        }
+
+        // Render Servers Table
+        async function renderServersTable() {
+            try {
+                currentServers = await fetchServers();
+                if (!currentServers.length) {
+                    serversTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400"><i class="fas fa-database"></i> Belum ada server</td></tr>`;
+                    return;
+                }
+                let html = '';
+                for(const serv of currentServers) {
+                    const att = serv.attributes;
+                    const ownerName = att.user ? att.user : (att.relationships?.user?.attributes?.username || `User ID: ${att.user_id}`);
+                    html += `<tr class="hover:bg-white/5">
+                        <td class="px-5 py-3 font-mono text-sm">${att.id}</td>
+                        <td class="px-5 py-3 font-medium">${escapeHtml(att.name)}</td>
+                        <td class="px-5 py-3">${escapeHtml(ownerName)}</td>
+                        <td class="px-5 py-3 text-gray-300">${escapeHtml(att.description || '-')}</td>
+                        <td class="px-5 py-3 text-center">
+                            <button class="edit-server text-indigo-400 hover:text-indigo-300 mr-3" data-id="${att.id}" data-name="${escapeHtml(att.name)}" data-desc="${escapeHtml(att.description || '')}"><i class="fas fa-edit"></i> Edit</button>
+                            <button class="delete-server text-red-400 hover:text-red-300" data-id="${att.id}" data-name="${escapeHtml(att.name)}"><i class="fas fa-trash-alt"></i> Hapus</button>
+                        </td>
+                    </tr>`;
+                }
+                serversTableBody.innerHTML = html;
+                document.querySelectorAll('.edit-server').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const id = btn.dataset.id;
+                        const name = btn.dataset.name;
+                        const desc = btn.dataset.desc;
+                        openEditServerModal(id, name, desc);
+                    });
+                });
+                document.querySelectorAll('.delete-server').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const id = btn.dataset.id;
+                        const name = btn.dataset.name;
+                        if(confirm(`Hapus server "${name}"?`)) {
+                            try {
+                                await deleteServerApi(id);
+                                showToast("Server dihapus", "success");
+                                await renderServersTable();
+                            } catch(err) {
+                                showToast("Gagal hapus server: "+err.message, "error");
+                            }
+                        }
+                    });
+                });
+            } catch (err) {
+                serversTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-red-400"><i class="fas fa-bug"></i> ${err.message}</td></tr>`;
+                showToast("Error memuat servers", "error");
+            }
+        }
+
+        // Modals: User Edit/Create
+        function openEditUserModal(id, username, email, firstName, lastName) {
+            modalTitle.innerHTML = `<i class="fas fa-user-edit"></i> Edit User #${id}`;
+            modalBody.innerHTML = `
+                <div><label>Username</label><input id="editUsername" value="${escapeHtml(username)}" class="w-full"></div>
+                <div><label>Email</label><input id="editEmail" value="${escapeHtml(email)}" class="w-full"></div>
+                <div><label>Nama Depan</label><input id="editFirst" value="${escapeHtml(firstName)}" class="w-full"></div>
+                <div><label>Nama Belakang</label><input id="editLast" value="${escapeHtml(lastName)}" class="w-full"></div>
+                <div><label>Password Baru (kosongkan jika tidak diubah)</label><input id="editPassword" type="password" placeholder="******" class="w-full"></div>
+            `;
+            currentModalCallback = async () => {
+                const updates = {
+                    username: document.getElementById('editUsername').value,
+                    email: document.getElementById('editEmail').value,
+                    first_name: document.getElementById('editFirst').value,
+                    last_name: document.getElementById('editLast').value,
+                    password: document.getElementById('editPassword').value
+                };
+                if(!updates.username || !updates.email) throw new Error("Username dan Email wajib diisi");
+                await updateUserApi(id, updates);
+                await renderUsersTable();
+                await renderServersTable(); // karena owner mungkin berubah nama
+                showToast("User berhasil diperbarui", "success");
+            };
+            modal.classList.remove('hidden');
+        }
+
+        function openCreateUserModal() {
+            modalTitle.innerHTML = `<i class="fas fa-user-plus"></i> Buat User Baru`;
+            modalBody.innerHTML = `
+                <div><label>Username *</label><input id="newUsername" class="w-full" placeholder="username"></div>
+                <div><label>Email *</label><input id="newEmail" type="email" class="w-full" placeholder="user@example.com"></div>
+                <div><label>Nama Depan</label><input id="newFirst" class="w-full" placeholder="First"></div>
+                <div><label>Nama Belakang</label><input id="newLast" class="w-full" placeholder="Last"></div>
+                <div><label>Password *</label><input id="newPassword" type="password" class="w-full" placeholder="Min 8 karakter"></div>
+            `;
+            currentModalCallback = async () => {
+                const username = document.getElementById('newUsername').value.trim();
+                const email = document.getElementById('newEmail').value.trim();
+                const password = document.getElementById('newPassword').value;
+                if(!username || !email || !password) throw new Error("Username, Email, dan Password wajib diisi");
+                await createUserApi({ username, email, first_name: document.getElementById('newFirst').value, last_name: document.getElementById('newLast').value, password });
+                await renderUsersTable();
+                showToast("User berhasil dibuat", "success");
+            };
+            modal.classList.remove('hidden');
+        }
+
+        // Server Edit / Create
+        function openEditServerModal(serverId, currentName, currentDesc) {
+            modalTitle.innerHTML = `<i class="fas fa-server"></i> Edit Server #${serverId}`;
+            modalBody.innerHTML = `
+                <div><label>Nama Server</label><input id="editServerName" value="${escapeHtml(currentName)}" class="w-full"></div>
+                <div><label>Deskripsi</label><textarea id="editServerDesc" rows="2" class="w-full">${escapeHtml(currentDesc)}</textarea></div>
+            `;
+            currentModalCallback = async () => {
+                const newName = document.getElementById('editServerName').value.trim();
+                if(!newName) throw new Error("Nama server tidak boleh kosong");
+                await updateServerApi(serverId, { name: newName, description: document.getElementById('editServerDesc').value });
+                await renderServersTable();
+                showToast("Server diperbarui", "success");
+            };
+            modal.classList.remove('hidden');
+        }
+
+        async function openCreateServerModal() {
+            // perlu daftar user untuk dropdown owner
+            let usersList = [];
+            try { usersList = await fetchUsers(); } catch(e){}
+            modalTitle.innerHTML = `<i class="fas fa-plus-circle"></i> Buat Server Baru (Parameter Wajib)`;
+            modalBody.innerHTML = `
+                <div class="text-sm text-yellow-300 bg-yellow-950/40 p-3 rounded-lg mb-2"><i class="fas fa-info-circle"></i> Isi sesuai dengan resource panel Anda. Pastikan nest, egg, node ID valid.</div>
+                <div><label>Nama Server *</label><input id="srvName" class="w-full" placeholder="My Server"></div>
+                <div><label>Deskripsi</label><input id="srvDesc" class="w-full" placeholder="Opsional"></div>
+                <div><label>Owner (User ID) *</label><select id="srvUserId" class="w-full">${usersList.map(u => `<option value="${u.attributes.id}">${u.attributes.username} (ID:${u.attributes.id})</option>`).join('')}</select></div>
+                <div class="grid grid-cols-2 gap-3"><div><label>Nest ID *</label><input id="nestId" type="number" class="w-full" placeholder="1"></div><div><label>Egg ID *</label><input id="eggId" type="number" class="w-full" placeholder="1"></div></div>
+                <div><label>Node ID *</label><input id="nodeId" type="number" class="w-full" placeholder="1"></div>
+                <div class="grid grid-cols-2 gap-3"><div><label>Memory (MB)</label><input id="mem" type="number" value="1024"></div><div><label>Disk (MB)</label><input id="disk" type="number" value="5120"></div></div>
+                <div class="grid grid-cols-2 gap-3"><div><label>CPU (%)</label><input id="cpu" type="number" value="100"></div><div><label>Swap (MB)</label><input id="swap" type="number" value="0"></div></div>
+            `;
+            currentModalCallback = async () => {
+                const data = {
+                    name: document.getElementById('srvName').value.trim(),
+                    description: document.getElementById('srvDesc').value,
+                    user_id: document.getElementById('srvUserId').value,
+                    nest_id: document.getElementById('nestId').value,
+                    egg_id: document.getElementById('eggId').value,
+                    node_id: document.getElementById('nodeId').value,
+                    memory: document.getElementById('mem').value,
+                    disk: document.getElementById('disk').value,
+                    cpu: document.getElementById('cpu').value,
+                    swap: document.getElementById('swap').value,
+                };
+                if(!data.name || !data.user_id || !data.nest_id || !data.egg_id || !data.node_id) throw new Error("Semua field bertanda * harus diisi");
+                await createServerApi(data);
+                await renderServersTable();
+                showToast("Server berhasil dibuat!", "success");
+            };
+            modal.classList.remove('hidden');
+        }
+
+        // Helper umum
+        function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+        function showToast(msg, type="info") { alert(`[${type.toUpperCase()}] ${msg}`); } // simpel toast
+
+        // Login handler
+        async function handleConnect() {
+            const domain = document.getElementById('panelDomain').value.trim();
+            const key = document.getElementById('apiKey').value.trim();
+            if(!domain || !key) { loginErrorDiv.innerText = "Domain & API Key wajib diisi!"; loginErrorDiv.classList.remove('hidden'); return; }
+            panelDomain = domain; apiKey = key;
+            try {
+                // test API dengan fetch users
+                await apiRequest('/users', 'GET');
+                localStorage.setItem('rfn_domain', panelDomain);
+                localStorage.setItem('rfn_apikey', apiKey);
+                loginSection.classList.add('hidden');
+                dashboardSection.classList.remove('hidden');
+                logoutContainer.classList.remove('hidden');
+                activeDomainDisplay.innerText = panelDomain;
+                await renderUsersTable();
+                await renderServersTable();
+                loginErrorDiv.classList.add('hidden');
+            } catch(err) {
+                loginErrorDiv.innerText = "Koneksi gagal: " + err.message;
+                loginErrorDiv.classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('rfn_domain');
+            localStorage.removeItem('rfn_apikey');
+            panelDomain = ""; apiKey = "";
+            loginSection.classList.remove('hidden');
+            dashboardSection.classList.add('hidden');
+            logoutContainer.classList.add('hidden');
+            document.getElementById('apiKey').value = "";
+            document.getElementById('panelDomain').value = "";
+        }
+
+        // Tabs
+        tabUsersBtn.addEventListener('click', () => {
+            usersPanel.classList.remove('hidden'); serversPanel.classList.add('hidden');
+            tabUsersBtn.classList.add('bg-indigo-600','text-white'); tabServersBtn.classList.remove('bg-indigo-600','text-white'); tabServersBtn.classList.add('text-gray-300');
+            renderUsersTable();
+        });
+        tabServersBtn.addEventListener('click', () => {
+            usersPanel.classList.add('hidden'); serversPanel.classList.remove('hidden');
+            tabServersBtn.classList.add('bg-indigo-600','text-white'); tabUsersBtn.classList.remove('bg-indigo-600','text-white'); tabUsersBtn.classList.add('text-gray-300');
+            renderServersTable();
+        });
+
+        // Event listeners
+        connectBtn.addEventListener('click', handleConnect);
+        logoutBtn.addEventListener('click', logout);
+        refreshBtn.addEventListener('click', () => { if(usersPanel.classList.contains('hidden')) renderServersTable(); else renderUsersTable(); });
+        document.getElementById('createUserBtn').addEventListener('click', openCreateUserModal);
+        document.getElementById('createServerBtn').addEventListener('click', openCreateServerModal);
+        function closeModal() { modal.classList.add('hidden'); currentModalCallback = null; }
+        modalCancelBtn.addEventListener('click', closeModal);
+        closeModalBtn.addEventListener('click', closeModal);
+        modalSubmitBtn.addEventListener('click', async () => { if(currentModalCallback) { try { await currentModalCallback(); closeModal(); } catch(err) { showToast(err.message, "error"); } } });
+
+        // auto load from localStorage
+        const savedDomain = localStorage.getItem('rfn_domain');
+        const savedKey = localStorage.getItem('rfn_apikey');
+        if(savedDomain && savedKey) {
+            document.getElementById('panelDomain').value = savedDomain;
+            document.getElementById('apiKey').value = savedKey;
+            handleConnect();
+        }
+        // styling default tab
+        tabUsersBtn.classList.add('bg-indigo-600','text-white');
+        tabServersBtn.classList.add('text-gray-300');
     </script>
 </body>
 </html>
