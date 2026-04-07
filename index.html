@@ -1,566 +1,754 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>RFN Pterodactyl | Manajemen Panel</title>
-    <!-- Tailwind CSS + Font Awesome + Google Fonts -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <style>
-        * { font-family: 'Inter', sans-serif; }
-        body { background: #0f0f1a; }
-        .glass-card { background: rgba(18, 18, 30, 0.9); backdrop-filter: blur(2px); border: 1px solid rgba(66, 66, 90, 0.5); }
-        .modal-transition { transition: opacity 0.2s ease, visibility 0.2s; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #1e1e2a; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
-        .table-container { overflow-x: auto; border-radius: 1rem; }
-        .btn-primary { background: #4f46e5; transition: all 0.2s; }
-        .btn-primary:hover { background: #6366f1; transform: translateY(-1px); }
-        .btn-danger { background: #dc2626; transition: all 0.2s; }
-        .btn-danger:hover { background: #ef4444; }
-        .btn-secondary { background: #2d2d3a; border: 1px solid #3f3f4e; }
-        .btn-secondary:hover { background: #3a3a4a; }
-        input, select, textarea { background: #14141f; border: 1px solid #2c2c3a; color: #eef2ff; border-radius: 12px; padding: 10px 14px; outline: none; transition: all 0.2s; }
-        input:focus, select:focus, textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.3); }
-        label { font-weight: 500; color: #cbd5e6; margin-bottom: 6px; display: block; }
-        .badge { background: #2a2a3c; padding: 4px 12px; border-radius: 40px; font-size: 0.75rem; font-weight: 500; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RFN Pterodactyl — Command Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --bg: #06060f;
+  --bg-panel: #0b0b18;
+  --bg-input: #0f0f1e;
+  --surface: rgba(255,255,255,0.03);
+  --surface2: rgba(255,255,255,0.06);
+  --surface-hover: rgba(255,255,255,0.1);
+  --border: rgba(255,255,255,0.07);
+  --accent: #7c6fff;
+  --accent-glow: rgba(124,111,255,0.3);
+  --accent2: #a78bfa;
+  --accent3: #38bdf8;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --text: #f8fafc;
+  --text-dim: #94a3b8;
+  --font-sans: 'Syne', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius-lg: 20px;
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg); color: var(--text); font-family: var(--font-mono);
+  width: 100vw; height: 100vh; overflow: hidden; display: flex; position: relative;
+}
+
+/* Background Animation */
+.bg-animation {
+  position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+  z-index: 0; overflow: hidden; pointer-events: none;
+}
+.particle {
+  position: absolute; background: linear-gradient(180deg, var(--accent) 0%, transparent 100%);
+  border-radius: 50%; opacity: 0; animation: rainDrop linear infinite;
+}
+@keyframes rainDrop {
+  0% { transform: translateY(-50px) scaleY(1); opacity: 0; }
+  10% { opacity: 0.6; }
+  80% { opacity: 0.6; transform: translateY(80vh) scaleY(2); }
+  100% { transform: translateY(100vh) scaleY(1); opacity: 0; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+h1, h2, h3, h4 { font-family: var(--font-sans); }
+.no-wrap { white-space: nowrap; flex-shrink: 0; }
+.text-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* === Premium Buttons & Inputs === */
+input, select, textarea {
+  width: 100%; background: var(--bg-input); border: 1px solid var(--border);
+  color: var(--text); padding: 12px 16px; border-radius: var(--radius-sm);
+  font-family: var(--font-mono); font-size: 13px; transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow);
+}
+
+.btn {
+  padding: 10px 20px; border: none; border-radius: var(--radius-sm);
+  font-family: var(--font-sans); font-weight: 600; font-size: 14px;
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  white-space: nowrap; flex-shrink: 0;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative; overflow: hidden;
+}
+.btn:active { transform: scale(0.92); }
+.btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; box-shadow: 0 4px 15px var(--accent-glow); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px var(--accent-glow); filter: brightness(1.1); }
+.btn-danger { background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid rgba(239,68,68,0.2); }
+.btn-danger:hover { background: var(--danger); color: #fff; transform: translateY(-2px); }
+.btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--surface-hover); border-color: var(--text-dim); }
+.btn-icon { width: 38px; height: 38px; padding: 0; border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--border); color: var(--text); font-size: 14px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+.btn-icon:hover { background: var(--surface-hover); transform: rotate(5deg) scale(1.05); }
+.btn-sm { padding: 8px 14px; font-size: 13px; }
+
+/* === Layout: Sidebar + Main === */
+#authScreen, #appLayout { display: none; width: 100%; height: 100%; z-index: 1; }
+#authScreen.active, #appLayout.active { display: flex; }
+
+/* Sidebar */
+.sidebar {
+  width: 260px; background: var(--bg-panel); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; transition: transform 0.3s ease; z-index: 100;
+}
+.sidebar-header {
+  height: 75px; padding: 0 20px; display: flex; align-items: center; gap: 12px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.brand-icon {
+  width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent3));
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+.brand-text { font-family: var(--font-sans); font-weight: 700; font-size: 18px; letter-spacing: -0.5px; }
+
+.sidebar-menu { flex: 1; overflow-y: auto; padding: 15px 10px; display: flex; flex-direction: column; gap: 4px; }
+.menu-item {
+  width: 100%; text-align: left; background: transparent; border: none;
+  padding: 12px 15px; border-radius: var(--radius-sm); color: var(--text-dim);
+  font-family: var(--font-sans); font-weight: 600; font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; gap: 12px; transition: all 0.2s;
+}
+.menu-item i { width: 20px; text-align: center; font-size: 16px; transition: transform 0.2s; }
+.menu-item:hover { color: var(--text); background: var(--surface); padding-left: 20px; }
+.menu-item.active { background: var(--surface2); color: var(--accent3); border-left: 3px solid var(--accent); padding-left: 17px; }
+.menu-item.active i { transform: scale(1.1); color: var(--accent3); }
+
+/* Main Content */
+.main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+.topbar {
+  height: 75px; background: var(--bg-panel); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; padding: 0 30px; flex-shrink: 0;
+}
+.topbar-left { display: flex; align-items: center; gap: 15px; }
+.page-title { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.parent-badge { display:none; background: rgba(245,158,11,0.1); color: var(--warning); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid rgba(245,158,11,0.2); cursor: pointer; transition: 0.2s; }
+.parent-badge:hover { background: rgba(245,158,11,0.2); }
+.topbar-actions { display: flex; gap: 10px; }
+
+/* The fix for scroll: flex: 1 and overflow-y: auto */
+.content-scroll { flex: 1; overflow-y: auto; padding: 30px; }
+
+/* Data Grid & Cards */
+.data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; padding-bottom: 50px; }
+.data-card {
+  background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 20px; display: flex; flex-direction: column; gap: 15px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  animation: cardIn 0.5s backwards;
+}
+.data-card:hover { transform: translateY(-4px) scale(1.01); border-color: rgba(124,111,255,0.4); box-shadow: 0 12px 25px rgba(0,0,0,0.3); }
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+.card-title { font-size: 16px; font-weight: 700; color: var(--text); width: 100%; display: flex; align-items: center; gap: 8px; }
+.card-body { flex: 1; display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: var(--text-dim); }
+.info-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: var(--surface); padding: 8px 12px; border-radius: 6px; }
+.info-row strong { color: var(--text); font-weight: 500; }
+.info-val { display: inline-block; max-width: 180px; text-align: right; }
+.card-footer { display: flex; justify-content: flex-end; gap: 8px; padding-top: 10px; }
+.badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; white-space: nowrap; flex-shrink: 0; }
+.badge-active { background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid rgba(16,185,129,0.2); }
+.badge-inactive { background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid rgba(239,68,68,0.2); }
+
+/* Modals */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; visibility: hidden; transition: all 0.3s; }
+.modal-overlay.active { opacity: 1; visibility: visible; }
+.modal { background: var(--bg-panel); width: 100%; max-width: 550px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: 0 30px 60px rgba(0,0,0,0.6); display: flex; flex-direction: column; max-height: 90vh; transform: scale(0.95) translateY(20px); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.modal-overlay.active .modal { transform: scale(1) translateY(0); }
+.modal-header { padding: 20px 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.modal-header h3 { font-size: 18px; }
+.modal-body { padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+.modal-footer { padding: 20px 25px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; background: var(--bg); border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg); flex-shrink: 0; }
+.form-group { display: flex; flex-direction: column; gap: 8px; }
+.form-group label { font-size: 12px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Grid Forms */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.form-grid.full { grid-template-columns: 1fr; }
+
+/* Toast */
+.toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+.toast { background: var(--bg-panel); border: 1px solid var(--border); padding: 14px 20px; border-radius: var(--radius-sm); display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-family: var(--font-sans); font-weight: 600; font-size: 14px; animation: slideIn .4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; max-width: 350px; }
+.toast.success { border-left: 4px solid var(--success); }
+.toast.error { border-left: 4px solid var(--danger); }
+@keyframes slideIn { from { transform: translateX(100%) scale(0.9); opacity: 0; } to { transform: translateX(0) scale(1); opacity: 1; } }
+
+/* Empty State / Loader */
+.empty-state { grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius); color: var(--text-dim); display: flex; flex-direction: column; align-items: center; gap: 15px; }
+.empty-state i { font-size: 40px; color: var(--border); }
+.spinner { animation: spin 1s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* Auth Screen Details */
+.auth-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; }
+.bg-glow { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, var(--accent-glow) 0%, rgba(0,0,0,0) 70%); top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+.auth-box { background: var(--bg-panel); border: 1px solid var(--border); padding: 40px; border-radius: var(--radius-lg); width: 100%; max-width: 400px; z-index: 1; box-shadow: 0 20px 50px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 20px; animation: cardIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.auth-header { text-align: center; margin-bottom: 10px; }
+.auth-icon { font-size: 46px; background: linear-gradient(135deg, var(--accent), var(--accent3)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 15px; filter: drop-shadow(0 0 10px var(--accent-glow)); }
+
+@media(max-width: 768px) {
+  .sidebar { position: absolute; left: -260px; height: 100%; }
+  .sidebar.open { left: 0; box-shadow: 20px 0 50px rgba(0,0,0,0.5); }
+  .topbar { padding: 0 15px; }
+  .content-scroll { padding: 15px; }
+  .form-grid { grid-template-columns: 1fr; }
+}
+</style>
 </head>
-<body class="text-gray-200 antialiased">
+<body>
 
-    <div class="min-h-screen flex flex-col">
-        <!-- HEADER -->
-        <header class="border-b border-gray-800 bg-[#0a0a12] sticky top-0 z-20">
-            <div class="max-w-7xl mx-auto px-5 py-4 flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-dragon text-3xl text-indigo-400"></i>
-                    <span class="font-bold text-2xl tracking-tight bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">RFN Pterodactyl</span>
-                </div>
-                <div id="logoutContainer" class="hidden">
-                    <button id="logoutBtn" class="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2"><i class="fas fa-sign-out-alt"></i> Logout</button>
-                </div>
-            </div>
-        </header>
+<!-- Animated Background Particles -->
+<div class="bg-animation" id="bgAnimation"></div>
 
-        <main class="flex-1 max-w-7xl w-full mx-auto px-5 py-8">
-            <!-- LOGIN / CONFIGURATION CARD -->
-            <div id="loginSection" class="flex justify-center items-center min-h-[70vh]">
-                <div class="glass-card rounded-2xl p-8 w-full max-w-lg shadow-2xl border border-indigo-500/20">
-                    <div class="text-center mb-6">
-                        <i class="fas fa-cloud-upload-alt text-5xl text-indigo-400 mb-3"></i>
-                        <h2 class="text-2xl font-bold">Hubungkan ke Panel</h2>
-                        <p class="text-gray-400 text-sm mt-1">Masukkan URL panel & API Key (Application)</p>
-                    </div>
-                    <div class="space-y-5">
-                        <div>
-                            <label><i class="fas fa-link mr-1"></i> Domain Panel</label>
-                            <input type="text" id="panelDomain" placeholder="https://panel.domain.com" class="w-full" value="https://demo.pterodactyl.com">
-                            <p class="text-xs text-gray-500 mt-1">Contoh: https://panel.example.com (tanpa slash akhir)</p>
-                        </div>
-                        <div>
-                            <label><i class="fas fa-key mr-1"></i> Pterodactyl API Key (Application)</label>
-                            <input type="password" id="apiKey" placeholder="ptlc_xxxxxxxxxxxxxxxxxxxx" class="w-full">
-                            <p class="text-xs text-gray-500 mt-1">Dapatkan dari Panel → Admin API → Credentials</p>
-                        </div>
-                        <button id="connectBtn" class="btn-primary w-full py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2"><i class="fas fa-plug"></i> Hubungkan & Dashboard</button>
-                    </div>
-                    <div id="loginError" class="mt-4 text-red-400 text-sm text-center hidden"></div>
-                </div>
-            </div>
+<div class="toast-container" id="toastContainer"></div>
 
-            <!-- DASHBOARD SECTION (hidden awal) -->
-            <div id="dashboardSection" class="hidden">
-                <!-- Tabs & Info bar -->
-                <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
-                    <div class="flex gap-2 bg-[#11111b] p-1 rounded-xl">
-                        <button id="tabUsersBtn" class="tab-btn px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"><i class="fas fa-users"></i> Users</button>
-                        <button id="tabServersBtn" class="tab-btn px-6 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2"><i class="fas fa-server"></i> Servers</button>
-                    </div>
-                    <div class="flex items-center gap-3 text-sm bg-black/40 px-4 py-2 rounded-full">
-                        <i class="fas fa-globe text-indigo-400"></i>
-                        <span class="font-mono text-indigo-300" id="activeDomainDisplay"></span>
-                        <button id="refreshDataBtn" class="ml-2 bg-gray-700 hover:bg-gray-600 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-sync-alt text-xs"></i></button>
-                    </div>
-                </div>
+<!-- AUTH SCREEN -->
+<div id="authScreen" class="active">
+  <div class="auth-wrapper">
+    <div class="bg-glow"></div>
+    <div class="auth-box">
+      <div class="auth-header">
+        <i class="fa-solid fa-bolt auth-icon"></i>
+        <h2>Connect to Panel</h2>
+        <p style="color:var(--text-dim); font-size:13px;">Login using Application API</p>
+      </div>
+      <div class="form-group">
+        <label>Panel URL</label>
+        <input type="url" id="panelDomain" placeholder="https://panel.yourdomain.com">
+      </div>
+      <div class="form-group">
+        <label>Application API Key</label>
+        <input type="password" id="apiKey" placeholder="ptla_xxxxxxxxxxxxxxxx">
+      </div>
+      <button class="btn btn-primary" id="loginBtn" style="margin-top: 10px; height: 44px;">
+        <i class="fa-solid fa-right-to-bracket"></i> Connect Panel
+      </button>
+    </div>
+  </div>
+</div>
 
-                <!-- USERS PANEL -->
-                <div id="usersPanel" class="space-y-5">
-                    <div class="flex justify-between items-center flex-wrap gap-3">
-                        <h3 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-user-plus text-indigo-400"></i> Manajemen Users</h3>
-                        <button id="createUserBtn" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2"><i class="fas fa-plus-circle"></i> Buat User Baru</button>
-                    </div>
-                    <div class="table-container glass-card rounded-xl overflow-hidden">
-                        <table class="min-w-full divide-y divide-gray-800">
-                            <thead class="bg-[#0e0e18]">
-                                <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
-                                    <th class="px-5 py-3">ID</th><th class="px-5 py-3">Username</th><th class="px-5 py-3">Email</th><th class="px-5 py-3">Nama</th><th class="px-5 py-3">Admin</th><th class="px-5 py-3 text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="usersTableBody" class="divide-y divide-gray-800/60 bg-[#0f0f17]">
-                                <tr><td colspan="6" class="text-center py-8 text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i> Memuat users...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+<!-- APP LAYOUT (Sidebar + Main) -->
+<div id="appLayout">
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-icon"><i class="fa-solid fa-server"></i></div>
+      <div class="brand-text">RFN Pterodactyl</div>
+    </div>
+    <div class="sidebar-menu" id="sidebarMenu">
+      <!-- Menu digenerate via JS -->
+    </div>
+  </div>
 
-                <!-- SERVERS PANEL -->
-                <div id="serversPanel" class="hidden space-y-5">
-                    <div class="flex justify-between items-center flex-wrap gap-3">
-                        <h3 class="text-xl font-bold flex items-center gap-2"><i class="fas fa-plus-circle text-indigo-400"></i> Manajemen Servers</h3>
-                        <button id="createServerBtn" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2"><i class="fas fa-hdd"></i> Buat Server Baru</button>
-                    </div>
-                    <div class="table-container glass-card rounded-xl overflow-hidden">
-                        <table class="min-w-full divide-y divide-gray-800">
-                            <thead class="bg-[#0e0e18]"><tr class="text-left text-xs font-semibold text-gray-400"><th class="px-5 py-3">ID</th><th class="px-5 py-3">Nama Server</th><th class="px-5 py-3">Pemilik (User)</th><th class="px-5 py-3">Deskripsi</th><th class="px-5 py-3 text-center">Aksi</th></tr></thead>
-                            <tbody id="serversTableBody" class="divide-y divide-gray-800/60 bg-[#0f0f17]"><tr><td colspan="5" class="text-center py-8 text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i> Memuat servers...</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </main>
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2 class="page-title" id="pageTitle"><i class="fa-solid fa-users"></i> Manajemen Users</h2>
+        <div class="parent-badge" id="parentBadge" title="Klik untuk mengubah">Parent ID: -</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary btn-sm" id="btnCreate"><i class="fa-solid fa-plus"></i> Tambah Baru</button>
+        <button class="btn-icon" id="btnRefresh" title="Refresh"><i class="fa-solid fa-rotate-right"></i></button>
+        <button class="btn-icon" id="btnLogout" title="Logout" style="color:var(--danger); border-color:rgba(239,68,68,0.3);"><i class="fa-solid fa-power-off"></i></button>
+      </div>
     </div>
 
-    <!-- MODAL GENERIK (untuk create/edit user/server) -->
-    <div id="genericModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 hidden modal-transition">
-        <div class="glass-card rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4 p-6 shadow-2xl">
-            <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
-                <h3 id="modalTitle" class="text-xl font-bold flex items-center gap-2"><i class="fas fa-pen"></i> Form</h3>
-                <button id="closeModalBtn" class="text-gray-400 hover:text-white text-2xl">&times;</button>
-            </div>
-            <div id="modalBody" class="space-y-4"></div>
-            <div class="flex justify-end gap-3 pt-5 mt-2 border-t border-gray-700">
-                <button id="modalCancelBtn" class="btn-secondary px-5 py-2 rounded-xl">Batal</button>
-                <button id="modalSubmitBtn" class="btn-primary px-5 py-2 rounded-xl">Simpan</button>
-            </div>
-        </div>
+    <div class="content-scroll">
+      <div id="dataContainer" class="data-grid">
+        <!-- Data dimuat di sini -->
+      </div>
     </div>
+  </div>
+</div>
 
-    <script>
-        // ---------- GLOBAL STATE ----------
-        let panelDomain = "";
-        let apiKey = "";
-        let currentUsers = [];      // menyimpan list users untuk dropdown
-        let currentServers = [];
+<!-- GLOBAL MODAL (Create/Edit) Form Based -->
+<div class="modal-overlay" id="globalModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">Title</h3>
+      <button class="btn-icon" id="closeModalIcon" style="border:none; background:transparent;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <!-- Form Input Kolom dimuat disini -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="closeModalBtn">Batal</button>
+      <button class="btn btn-primary" id="submitModalBtn">Simpan Perubahan</button>
+    </div>
+  </div>
+</div>
 
-        // DOM elements
-        const loginSection = document.getElementById('loginSection');
-        const dashboardSection = document.getElementById('dashboardSection');
-        const logoutContainer = document.getElementById('logoutContainer');
-        const connectBtn = document.getElementById('connectBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const tabUsersBtn = document.getElementById('tabUsersBtn');
-        const tabServersBtn = document.getElementById('tabServersBtn');
-        const usersPanel = document.getElementById('usersPanel');
-        const serversPanel = document.getElementById('serversPanel');
-        const usersTableBody = document.getElementById('usersTableBody');
-        const serversTableBody = document.getElementById('serversTableBody');
-        const refreshBtn = document.getElementById('refreshDataBtn');
-        const activeDomainDisplay = document.getElementById('activeDomainDisplay');
-        const loginErrorDiv = document.getElementById('loginError');
+<!-- PARENT ID PROMPT MODAL -->
+<div class="modal-overlay" id="promptModal">
+  <div class="modal" style="max-width: 400px;">
+    <div class="modal-header">
+      <h3 id="promptTitle">Input Dibutuhkan</h3>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label id="promptLabel">Masukkan ID</label>
+        <input type="number" id="promptInput" placeholder="Contoh: 1">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="$('promptModal').classList.remove('active')">Batal</button>
+      <button class="btn btn-primary" id="promptSubmitBtn">Lanjutkan</button>
+    </div>
+  </div>
+</div>
 
-        // Modal
-        const modal = document.getElementById('genericModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalBody = document.getElementById('modalBody');
-        const modalSubmitBtn = document.getElementById('modalSubmitBtn');
-        const modalCancelBtn = document.getElementById('modalCancelBtn');
-        const closeModalBtn = document.getElementById('closeModalBtn');
+<script>
+// --- BACKGROUND ANIMATION ---
+function initParticles() {
+  const container = document.getElementById('bgAnimation');
+  container.innerHTML = '';
+  const numParticles = 40;
+  for(let i=0; i<numParticles; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 3 + 1; // 1px to 4px
+    p.style.width = `${size}px`;
+    p.style.height = `${size * 8}px`; // strech like rain
+    p.style.left = `${Math.random() * 100}vw`;
+    p.style.animationDuration = `${Math.random() * 2 + 2}s`; // 2s to 4s
+    p.style.animationDelay = `${Math.random() * 5}s`;
+    container.appendChild(p);
+  }
+}
+initParticles();
 
-        let currentModalCallback = null; // function (formData) => Promise
+const $ = id => document.getElementById(id);
 
-        // Helper: API request ke Pterodactyl
-        async function apiRequest(endpoint, method, body = null) {
-            const baseUrl = panelDomain.replace(/\/$/, '');
-            const url = `${baseUrl}/api/application${endpoint}`;
-            const headers = {
-                'Authorization': `Bearer ${apiKey}`,
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            };
-            const options = { method, headers };
-            if (body) options.body = JSON.stringify(body);
-            
-            const response = await fetch(url, options);
-            if (!response.ok) {
-                let errorMsg = `HTTP ${response.status}`;
-                try {
-                    const errData = await response.json();
-                    errorMsg = errData.errors?.[0]?.detail || errData.message || errorMsg;
-                } catch(e) {}
-                throw new Error(`Gagal ${method} ${endpoint}: ${errorMsg}`);
-            }
-            if (response.status === 204) return null;
-            return await response.json();
+// --- KONFIGURASI MENU ---
+const menus = {
+  users: { title: 'Users', icon: 'fa-users', endpoint: '/api/application/users' },
+  servers: { title: 'Servers', icon: 'fa-server', endpoint: '/api/application/servers' },
+  allocations: { title: 'Allocations', icon: 'fa-network-wired', endpoint: '/api/application/nodes/{parent}/allocations', requiresParent: 'Node ID' },
+  db_hosts: { title: 'Database Hosts', icon: 'fa-database', endpoint: '/api/application/database-hosts' },
+  eggs: { title: 'Eggs', icon: 'fa-egg', endpoint: '/api/application/nests/{parent}/eggs', requiresParent: 'Nest ID' },
+  locations: { title: 'Locations', icon: 'fa-globe', endpoint: '/api/application/locations' },
+  nests: { title: 'Nests', icon: 'fa-box-open', endpoint: '/api/application/nests' },
+  nodes: { title: 'Nodes', icon: 'fa-sitemap', endpoint: '/api/application/nodes' },
+  server_dbs: { title: 'Server Databases', icon: 'fa-database', endpoint: '/api/application/servers/{parent}/databases', requiresParent: 'Server ID' }
+};
+
+let currentMenu = 'users';
+let parentIds = { nodes: '', nests: '', servers: '' };
+let usersCache = {}; // Untuk mendeteksi Username Owner dari ID Server
+
+// --- UTILITIES ---
+function showToast(msg, type='success') {
+  const container = $('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<i class="fa-solid ${type==='success'?'fa-check-circle':'fa-circle-exclamation'}"></i> <span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.transform = 'translateX(120%)'; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+}
+
+function getCreds() { return { url: localStorage.getItem('rfn_url'), key: localStorage.getItem('rfn_key') }; }
+
+// --- API FETCHING ---
+async function apiReq(path, method = 'GET', body = null) {
+  const creds = getCreds();
+  if (!creds.url || !creds.key) throw new Error("Kredensial tidak valid");
+  let baseUrl = creds.url.endsWith('/') ? creds.url.slice(0, -1) : creds.url;
+  
+  const options = { method, headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': `Bearer ${creds.key}` } };
+  if (body) options.body = JSON.stringify(body);
+
+  const res = await fetch(`${baseUrl}${path}`, options);
+  if (res.status === 204) return true;
+  
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.errors ? data.errors.map(e => e.detail).join(', ') : 'API Error');
+  return data;
+}
+
+// Prefetch users for Owner mapping
+async function fetchUsersCache() {
+  try {
+    const res = await apiReq('/api/application/users?per_page=200');
+    if (res.data) res.data.forEach(u => usersCache[u.attributes.id] = u.attributes.username);
+  } catch (e) { console.error("Gagal cache users"); }
+}
+
+// --- RENDER SIDEBAR ---
+function initSidebar() {
+  const sb = $('sidebarMenu');
+  sb.innerHTML = '';
+  for (const [key, menu] of Object.entries(menus)) {
+    const btn = document.createElement('button');
+    btn.className = `menu-item ${key === currentMenu ? 'active' : ''}`;
+    btn.innerHTML = `<i class="fa-solid ${menu.icon}"></i> ${menu.title}`;
+    btn.onclick = () => switchMenu(key);
+    sb.appendChild(btn);
+  }
+}
+
+// --- SWITCH MENU & PARENT LOGIC ---
+async function switchMenu(key) {
+  const menu = menus[key];
+  if (menu.requiresParent) {
+    const parentType = menu.requiresParent.split(' ')[0].toLowerCase() + 's';
+    if (!parentIds[parentType]) return askForParentId(key, menu.requiresParent, parentType);
+  }
+  currentMenu = key; initSidebar();
+  
+  $('pageTitle').innerHTML = `<i class="fa-solid ${menu.icon}"></i> Manajemen ${menu.title}`;
+  if (menu.requiresParent) {
+    const pType = menu.requiresParent.split(' ')[0].toLowerCase() + 's';
+    $('parentBadge').style.display = 'inline-block';
+    $('parentBadge').innerText = `${menu.requiresParent}: ${parentIds[pType]}`;
+    $('parentBadge').onclick = () => askForParentId(key, menu.requiresParent, pType);
+  } else {
+    $('parentBadge').style.display = 'none';
+  }
+  loadData();
+}
+
+function askForParentId(menuKey, label, typeKey) {
+  $('promptTitle').innerText = `Butuh ${label}`;
+  $('promptLabel').innerText = `Masukkan ${label} untuk melihat data`;
+  $('promptInput').value = parentIds[typeKey] || '';
+  $('promptModal').classList.add('active');
+  $('promptInput').focus(); // Otomatis fokus agar mudah menekan enter
+  
+  $('promptSubmitBtn').onclick = () => {
+    const val = $('promptInput').value.trim();
+    if (!val) return showToast('ID tidak boleh kosong', 'error');
+    parentIds[typeKey] = val;
+    $('promptModal').classList.remove('active');
+    switchMenu(menuKey);
+  };
+}
+
+function getRealEndpoint(menuKey, itemId = '') {
+  let ep = menus[menuKey].endpoint;
+  if (menus[menuKey].requiresParent) {
+    const pType = menus[menuKey].requiresParent.split(' ')[0].toLowerCase() + 's';
+    ep = ep.replace('{parent}', parentIds[pType]);
+  }
+  return ep + (itemId ? `/${itemId}` : '');
+}
+
+// --- LOAD DATA ---
+async function loadData() {
+  const container = $('dataContainer');
+  const btn = $('btnRefresh');
+  btn.classList.add('spinner');
+  container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-notch spinner"></i><p>Memuat data...</p></div>`;
+  
+  try {
+    const endpoint = getRealEndpoint(currentMenu);
+    const res = await apiReq(`${endpoint}?per_page=100`);
+    const items = res.data || [];
+    
+    container.innerHTML = '';
+    if (items.length === 0) {
+      container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-box-open"></i><p>Tidak ada data ditemukan.</p></div>`;
+      return;
+    }
+
+    items.forEach((item, index) => {
+      container.appendChild(createCard(item, currentMenu, index));
+    });
+  } catch (e) {
+    container.innerHTML = `<div class="empty-state" style="color:var(--danger)"><i class="fa-solid fa-triangle-exclamation"></i><p>${e.message}</p></div>`;
+    showToast(e.message, 'error');
+  } finally {
+    btn.classList.remove('spinner');
+  }
+}
+
+// --- RENDER CARDS ---
+function createCard(item, menuKey, index) {
+  const attr = item.attributes;
+  const div = document.createElement('div');
+  div.className = 'data-card';
+  div.style.animationDelay = `${index * 0.05}s`;
+  
+  let headerHtml = '';
+  let bodyHtml = '';
+
+  if (menuKey === 'servers') {
+    // DETAIL SERVER YANG LEBIH LENGKAP
+    const ownerName = usersCache[attr.user] || `ID: ${attr.user}`;
+    const ownerDisplay = attr.user === 1 ? `<span style="color:var(--warning); font-weight:bold;">OWNER</span> (${ownerName})` : ownerName;
+    
+    const dateObj = attr.created_at ? new Date(attr.created_at) : new Date();
+    const formattedDate = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    const isSuspended = attr.suspended;
+
+    headerHtml = `
+      <div class="card-title text-truncate" title="${attr.name}"><i class="fa-solid fa-server"></i> ${attr.name}</div>
+      <span class="badge ${isSuspended ? 'badge-inactive' : 'badge-active'}">${isSuspended ? 'Suspended' : 'Active'}</span>
+    `;
+    bodyHtml = `
+      <div class="info-row"><strong>Owner:</strong> <span class="info-val text-truncate" title="${ownerName}"><i class="fa-solid fa-user" style="font-size:10px;"></i> ${ownerDisplay}</span></div>
+      <div class="info-row"><strong>Dibuat Pada:</strong> <span class="info-val">${formattedDate}</span></div>
+      <div class="info-row"><strong>Node ID:</strong> <span class="info-val">${attr.node}</span></div>
+      <div class="info-row"><strong>Memory / Disk:</strong> <span class="info-val">${attr.limits.memory} MB / ${attr.limits.disk} MB</span></div>
+    `;
+  } else if (menuKey === 'users') {
+    // DETAIL USER
+    let roleBadge = `<span class="badge ${attr.root_admin ? 'badge-active' : 'badge-inactive'}" style="${attr.root_admin ? '':'color:var(--text-dim);border-color:var(--border);'}">${attr.root_admin ? 'Admin' : 'User'}</span>`;
+    if (attr.id === 1) {
+      roleBadge = `<span class="badge" style="background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.2);">OWNER</span>`;
+    }
+
+    headerHtml = `
+      <div class="card-title text-truncate" title="${attr.username}"><i class="fa-solid fa-user"></i> ${attr.username}</div>
+      ${roleBadge}
+    `;
+    bodyHtml = `
+      <div class="info-row"><strong>ID:</strong> <span class="info-val">${attr.id}</span></div>
+      <div class="info-row"><strong>Nama:</strong> <span class="info-val text-truncate">${attr.first_name} ${attr.last_name}</span></div>
+      <div class="info-row"><strong>Email:</strong> <span class="info-val text-truncate">${attr.email}</span></div>
+    `;
+  } else {
+    // GENERIC FALLBACK
+    let title = attr.name || attr.username || attr.fqdn || attr.description || `ID: ${attr.id}`;
+    headerHtml = `<div class="card-title text-truncate" title="${title}"><i class="fa-solid ${menus[menuKey].icon}"></i> ${title}</div>`;
+    bodyHtml += `<div class="info-row"><strong>ID:</strong> <span class="info-val">${attr.id}</span></div>`;
+    
+    let sub1 = attr.uuid || attr.ip || attr.port || (attr.memory !== undefined ? `RAM: ${attr.memory}MB` : '') || '';
+    if(sub1) bodyHtml += `<div class="info-row"><strong>Info Utama:</strong> <span class="info-val text-truncate">${sub1}</span></div>`;
+  }
+
+  div.innerHTML = `
+    <div class="card-header">${headerHtml}</div>
+    <div class="card-body">${bodyHtml}</div>
+    <div class="card-footer">
+      <button class="btn btn-sm btn-secondary" onclick="openFormModal('edit', ${attr.id})"><i class="fa-solid fa-pen"></i> Edit</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteData(${attr.id})"><i class="fa-solid fa-trash"></i> Hapus</button>
+    </div>
+  `;
+  return div;
+}
+
+// --- CRUD OPERATIONS ---
+async function deleteData(id) {
+  if(!confirm("Anda yakin ingin menghapus data ini secara permanen?")) return;
+  try {
+    const endpoint = getRealEndpoint(currentMenu, id);
+    await apiReq(endpoint, 'DELETE');
+    showToast("Berhasil dihapus!");
+    loadData();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+// --- DYNAMIC FORM BUILDER (Bukan JSON Lagi) ---
+let modalAction = ''; // 'create' or 'edit'
+let editId = null;
+
+function renderInput(id, label, value = '', type = 'text', placeholder = '', isFull = false) {
+  return `
+    <div class="form-group ${isFull ? 'full' : ''}">
+      <label>${label}</label>
+      <input type="${type}" id="inp_${id}" value="${value}" placeholder="${placeholder}">
+    </div>
+  `;
+}
+
+function buildFormHtml(menuKey, action, data = {}) {
+  let html = `<div class="form-grid">`;
+  
+  if (menuKey === 'users') {
+    html += renderInput('email', 'Alamat Email', data.email||'', 'email', 'user@domain.com');
+    html += renderInput('username', 'Username', data.username||'', 'text', 'username');
+    html += renderInput('first_name', 'Nama Depan', data.first_name||'', 'text', 'John');
+    html += renderInput('last_name', 'Nama Belakang', data.last_name||'', 'text', 'Doe');
+    html += renderInput('password', 'Password', '', 'password', action === 'create' ? 'Wajib diisi' : 'Kosongkan jika tidak ingin diubah');
+  } 
+  else if (menuKey === 'servers') {
+    html += renderInput('name', 'Nama Server', data.name||'', 'text', 'My Server', true);
+    html += renderInput('user', 'Owner (User ID)', data.user||'', 'number', 'Contoh: 1');
+    html += renderInput('node', 'Node ID', data.node||'', 'number', 'Contoh: 1');
+    html += renderInput('allocation', 'Allocation ID', data.allocation||'', 'number');
+    html += renderInput('egg', 'Egg ID', data.egg||'', 'number');
+    html += renderInput('memory', 'Memory (MB)', data.limits?.memory ?? 1024, 'number');
+    html += renderInput('disk', 'Disk (MB)', data.limits?.disk ?? 1024, 'number');
+    html += renderInput('docker_image', 'Docker Image', data.docker_image||'ghcr.io/pterodactyl/yolks:java_17', 'text', '', true);
+    html += renderInput('startup', 'Startup Command', data.startup||'java -jar server.jar', 'text', '', true);
+  } 
+  else {
+    // Generate form generic berdasarkan property jika mode Edit, jika Create tampilkan notifikasi.
+    if (action === 'create') {
+      html += `<div style="grid-column: 1 / -1; color:var(--text-dim); text-align:center;">Mode pembuatan untuk modul <b>${menuKey}</b> butuh penyesuaian khusus. Coba gunakan panel asli untuk stabilitas tinggi.</div>`;
+    } else {
+      Object.keys(data).forEach(key => {
+        if(typeof data[key] !== 'object' && key !== 'id' && key !== 'created_at' && key !== 'updated_at') {
+          html += renderInput(key, key.replace('_', ' '), data[key]);
         }
+      });
+    }
+  }
+  
+  html += `</div>`;
+  return html;
+}
 
-        // ---------- USERS CRUD ----------
-        async function fetchUsers() {
-            const data = await apiRequest('/users', 'GET');
-            return data.data || [];
-        }
+// Collector: Mengambil inputan form HTML lalu dirubah menjadi JSON valid buat Pterodactyl API
+function collectFormData(menuKey) {
+  let body = {};
+  if (menuKey === 'users') {
+    body = {
+      email: $('inp_email').value, username: $('inp_username').value,
+      first_name: $('inp_first_name').value, last_name: $('inp_last_name').value
+    };
+    if ($('inp_password').value) body.password = $('inp_password').value;
+  } 
+  else if (menuKey === 'servers') {
+    body = {
+      name: $('inp_name').value,
+      user: parseInt($('inp_user').value),
+      node: parseInt($('inp_node').value),
+      allocation: parseInt($('inp_allocation').value),
+      egg: parseInt($('inp_egg').value),
+      docker_image: $('inp_docker_image').value,
+      startup: $('inp_startup').value,
+      environment: { SERVER_JARFILE: "server.jar" }, // Standar environment default
+      limits: {
+        memory: parseInt($('inp_memory').value),
+        swap: 0,
+        disk: parseInt($('inp_disk').value),
+        io: 500, cpu: 100
+      },
+      feature_limits: { databases: 0, backups: 0 }
+    };
+  } 
+  else {
+    // Untuk generic
+    const inputs = document.querySelectorAll('#modalBody input');
+    inputs.forEach(inp => {
+      const key = inp.id.replace('inp_', '');
+      const isNum = inp.type === 'number';
+      body[key] = isNum ? parseFloat(inp.value) : inp.value;
+    });
+  }
+  return body;
+}
 
-        async function createUserApi(userData) {
-            const payload = {
-                email: userData.email,
-                username: userData.username,
-                first_name: userData.first_name,
-                last_name: userData.last_name,
-                password: userData.password
-            };
-            const result = await apiRequest('/users', 'POST', payload);
-            return result.data;
-        }
+async function openFormModal(action, id = null) {
+  modalAction = action; editId = id;
+  const menuTitle = menus[currentMenu].title;
+  
+  $('modalTitle').innerHTML = action === 'create' ? `<i class="fa-solid fa-plus"></i> Tambah ${menuTitle}` : `<i class="fa-solid fa-pen"></i> Edit ${menuTitle}`;
+  $('modalBody').innerHTML = `<div style="text-align:center; color:var(--text-dim);"><i class="fa-solid fa-circle-notch spinner"></i> Memuat form...</div>`;
+  $('globalModal').classList.add('active');
 
-        async function updateUserApi(userId, updates) {
-            // hanya kirim field yang diizinkan
-            const payload = {};
-            if (updates.email) payload.email = updates.email;
-            if (updates.username) payload.username = updates.username;
-            if (updates.first_name) payload.first_name = updates.first_name;
-            if (updates.last_name) payload.last_name = updates.last_name;
-            if (updates.password && updates.password.trim() !== "") payload.password = updates.password;
-            const result = await apiRequest(`/users/${userId}`, 'PATCH', payload);
-            return result.data;
-        }
+  let data = {};
+  if (action === 'edit') {
+    try {
+      const endpoint = getRealEndpoint(currentMenu, id);
+      const res = await apiReq(endpoint);
+      data = res.attributes || res.data.attributes;
+    } catch(e) {
+      return $('modalBody').innerHTML = `<p style="color:var(--danger)">Gagal mengambil data: ${e.message}</p>`;
+    }
+  }
+  
+  $('modalBody').innerHTML = buildFormHtml(currentMenu, action, data);
+}
 
-        async function deleteUserApi(userId) {
-            await apiRequest(`/users/${userId}`, 'DELETE');
-        }
+const closeModal = () => $('globalModal').classList.remove('active');
+$('closeModalIcon').onclick = closeModal; $('closeModalBtn').onclick = closeModal;
 
-        // ---------- SERVERS CRUD (minimal: nama, deskripsi, owner dll untuk create) ----------
-        async function fetchServers() {
-            const data = await apiRequest('/servers', 'GET');
-            return data.data || [];
-        }
+$('submitModalBtn').onclick = async () => {
+  const btn = $('submitModalBtn');
+  btn.innerHTML = `<i class="fa-solid fa-circle-notch spinner"></i> Menyimpan...`;
+  btn.disabled = true;
 
-        async function createServerApi(serverData) {
-            // minimal payload sesuai dokumentasi: name, user, egg, node, nest, allocations & limits.
-            // Kita minta field wajib: name, user_id, nest_id, egg_id, node_id, memory, disk, cpu, swap
-            const payload = {
-                name: serverData.name,
-                user: serverData.user_id,
-                nest: serverData.nest_id,
-                egg: serverData.egg_id,
-                node: serverData.node_id,
-                description: serverData.description || "",
-                limits: {
-                    memory: parseInt(serverData.memory),
-                    disk: parseInt(serverData.disk),
-                    cpu: parseInt(serverData.cpu),
-                    swap: parseInt(serverData.swap)
-                },
-                feature_limits: {
-                    databases: serverData.databases || 1,
-                    allocations: serverData.allocations || 1
-                }
-            };
-            // allocation default: butuh minimal satu allocation, kita minta user nanti mengisi port? bisa skip karena butuh port tersedia. Untuk demo sederhana kita asumsikan API dapat otomatis pakai default allocation jika ada.
-            // Lebih baik kita set dummy allocation_ids? risiko error. Tapi agar tidak terlalu kompleks, kita panggil tanpa allocation_ids, Pterodactyl akan memilih otomatis jika node punya alokasi.
-            // Jika error akan tampil.
-            const result = await apiRequest('/servers', 'POST', payload);
-            return result.data;
-        }
+  try {
+    const bodyPayload = collectFormData(currentMenu);
+    const endpoint = getRealEndpoint(currentMenu, modalAction === 'edit' ? editId : '');
+    const method = modalAction === 'create' ? 'POST' : 'PATCH';
+    
+    await apiReq(endpoint, method, bodyPayload);
+    
+    showToast(`Data berhasil ${modalAction === 'create' ? 'dibuat' : 'diperbarui'}!`);
+    closeModal();
+    loadData();
+  } catch (e) {
+    showToast(e.message, 'error');
+  } finally {
+    btn.innerHTML = `Simpan Perubahan`;
+    btn.disabled = false;
+  }
+};
 
-        async function updateServerApi(serverId, updates) {
-            // hanya update nama & deskripsi (simple)
-            const payload = {};
-            if (updates.name) payload.name = updates.name;
-            if (updates.description !== undefined) payload.description = updates.description;
-            const result = await apiRequest(`/servers/${serverId}`, 'PATCH', payload);
-            return result.data;
-        }
+$('btnCreate').onclick = () => openFormModal('create');
+$('btnRefresh').onclick = loadData;
 
-        async function deleteServerApi(serverId) {
-            await apiRequest(`/servers/${serverId}`, 'DELETE');
-        }
+// --- AUTH LOGIC ---
+$('loginBtn').onclick = async () => {
+  const url = $('panelDomain').value.trim();
+  const key = $('apiKey').value.trim();
+  if(!url || !key) return showToast('Isi URL dan API Key!', 'error');
+  
+  $('loginBtn').innerHTML = `<i class="fa-solid fa-circle-notch spinner"></i> Mengautentikasi...`;
+  try {
+    let baseUrl = url.endsWith('/') ? url.slice(0, -1) : url;
+    const res = await fetch(`${baseUrl}/api/application/users`, { headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${key}` } });
+    if(!res.ok) throw new Error("Akses ditolak. Periksa URL dan Key.");
+    
+    localStorage.setItem('rfn_url', url); localStorage.setItem('rfn_key', key);
+    showToast('Login berhasil!');
+    
+    $('authScreen').classList.remove('active');
+    $('appLayout').classList.add('active');
+    
+    await fetchUsersCache(); // Load caching
+    initSidebar();
+    switchMenu('users');
+  } catch(e) { showToast(e.message, 'error'); } 
+  finally { $('loginBtn').innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Connect Panel`; }
+};
 
-        // Render Users Table
-        async function renderUsersTable() {
-            try {
-                currentUsers = await fetchUsers();
-                if (!currentUsers.length) {
-                    usersTableBody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400"><i class="fas fa-user-slash"></i> Tidak ada user ditemukan</td></tr>`;
-                    return;
-                }
-                let html = '';
-                for (const user of currentUsers) {
-                    const attrs = user.attributes;
-                    html += `<tr class="hover:bg-white/5 transition">
-                        <td class="px-5 py-3 font-mono text-sm">${attrs.id}</td>
-                        <td class="px-5 py-3 font-medium">${escapeHtml(attrs.username)}</td>
-                        <td class="px-5 py-3">${escapeHtml(attrs.email)}</td>
-                        <td class="px-5 py-3">${escapeHtml(attrs.first_name)} ${escapeHtml(attrs.last_name)}</td>
-                        <td class="px-5 py-3"><span class="badge ${attrs.root_admin ? 'bg-purple-900 text-purple-200' : 'bg-gray-700'}">${attrs.root_admin ? 'Admin' : 'User'}</span></td>
-                        <td class="px-5 py-3 text-center">
-                            <button class="edit-user text-indigo-400 hover:text-indigo-300 mr-3" data-id="${attrs.id}" data-username="${escapeHtml(attrs.username)}" data-email="${escapeHtml(attrs.email)}" data-first="${escapeHtml(attrs.first_name)}" data-last="${escapeHtml(attrs.last_name)}" data-admin="${attrs.root_admin}"><i class="fas fa-edit"></i> Edit</button>
-                            <button class="delete-user text-red-400 hover:text-red-300" data-id="${attrs.id}" data-name="${escapeHtml(attrs.username)}"><i class="fas fa-trash-alt"></i> Hapus</button>
-                        </td>
-                    </tr>`;
-                }
-                usersTableBody.innerHTML = html;
-                // attach event
-                document.querySelectorAll('.edit-user').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const id = btn.dataset.id;
-                        const username = btn.dataset.username;
-                        const email = btn.dataset.email;
-                        const first = btn.dataset.first;
-                        const last = btn.dataset.last;
-                        openEditUserModal(id, username, email, first, last);
-                    });
-                });
-                document.querySelectorAll('.delete-user').forEach(btn => {
-                    btn.addEventListener('click', async () => {
-                        const id = btn.dataset.id;
-                        const name = btn.dataset.name;
-                        if(confirm(`Yakin hapus user "${name}"? Semua server miliknya juga bisa terdampak.`)) {
-                            try {
-                                await deleteUserApi(id);
-                                showToast("User berhasil dihapus", "success");
-                                await renderUsersTable();
-                                await renderServersTable(); // refresh servers juga karena owner berubah
-                            } catch(err) {
-                                showToast("Gagal hapus: " + err.message, "error");
-                            }
-                        }
-                    });
-                });
-            } catch (err) {
-                usersTableBody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-400"><i class="fas fa-exclamation-triangle"></i> Error: ${err.message}</td></tr>`;
-                showToast("Gagal memuat users", "error");
-            }
-        }
+$('btnLogout').onclick = () => {
+  localStorage.removeItem('rfn_url'); localStorage.removeItem('rfn_key');
+  $('appLayout').classList.remove('active'); $('authScreen').classList.add('active');
+};
 
-        // Render Servers Table
-        async function renderServersTable() {
-            try {
-                currentServers = await fetchServers();
-                if (!currentServers.length) {
-                    serversTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400"><i class="fas fa-database"></i> Belum ada server</td></tr>`;
-                    return;
-                }
-                let html = '';
-                for(const serv of currentServers) {
-                    const att = serv.attributes;
-                    const ownerName = att.user ? att.user : (att.relationships?.user?.attributes?.username || `User ID: ${att.user_id}`);
-                    html += `<tr class="hover:bg-white/5">
-                        <td class="px-5 py-3 font-mono text-sm">${att.id}</td>
-                        <td class="px-5 py-3 font-medium">${escapeHtml(att.name)}</td>
-                        <td class="px-5 py-3">${escapeHtml(ownerName)}</td>
-                        <td class="px-5 py-3 text-gray-300">${escapeHtml(att.description || '-')}</td>
-                        <td class="px-5 py-3 text-center">
-                            <button class="edit-server text-indigo-400 hover:text-indigo-300 mr-3" data-id="${att.id}" data-name="${escapeHtml(att.name)}" data-desc="${escapeHtml(att.description || '')}"><i class="fas fa-edit"></i> Edit</button>
-                            <button class="delete-server text-red-400 hover:text-red-300" data-id="${att.id}" data-name="${escapeHtml(att.name)}"><i class="fas fa-trash-alt"></i> Hapus</button>
-                        </td>
-                    </tr>`;
-                }
-                serversTableBody.innerHTML = html;
-                document.querySelectorAll('.edit-server').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const id = btn.dataset.id;
-                        const name = btn.dataset.name;
-                        const desc = btn.dataset.desc;
-                        openEditServerModal(id, name, desc);
-                    });
-                });
-                document.querySelectorAll('.delete-server').forEach(btn => {
-                    btn.addEventListener('click', async () => {
-                        const id = btn.dataset.id;
-                        const name = btn.dataset.name;
-                        if(confirm(`Hapus server "${name}"?`)) {
-                            try {
-                                await deleteServerApi(id);
-                                showToast("Server dihapus", "success");
-                                await renderServersTable();
-                            } catch(err) {
-                                showToast("Gagal hapus server: "+err.message, "error");
-                            }
-                        }
-                    });
-                });
-            } catch (err) {
-                serversTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-red-400"><i class="fas fa-bug"></i> ${err.message}</td></tr>`;
-                showToast("Error memuat servers", "error");
-            }
-        }
+// --- ENTER KEY SUPPORT ---
+$('panelDomain').addEventListener('keyup', (e) => { if(e.key === 'Enter') $('loginBtn').click(); });
+$('apiKey').addEventListener('keyup', (e) => { if(e.key === 'Enter') $('loginBtn').click(); });
+$('promptInput').addEventListener('keyup', (e) => { if(e.key === 'Enter') $('promptSubmitBtn').click(); });
 
-        // Modals: User Edit/Create
-        function openEditUserModal(id, username, email, firstName, lastName) {
-            modalTitle.innerHTML = `<i class="fas fa-user-edit"></i> Edit User #${id}`;
-            modalBody.innerHTML = `
-                <div><label>Username</label><input id="editUsername" value="${escapeHtml(username)}" class="w-full"></div>
-                <div><label>Email</label><input id="editEmail" value="${escapeHtml(email)}" class="w-full"></div>
-                <div><label>Nama Depan</label><input id="editFirst" value="${escapeHtml(firstName)}" class="w-full"></div>
-                <div><label>Nama Belakang</label><input id="editLast" value="${escapeHtml(lastName)}" class="w-full"></div>
-                <div><label>Password Baru (kosongkan jika tidak diubah)</label><input id="editPassword" type="password" placeholder="******" class="w-full"></div>
-            `;
-            currentModalCallback = async () => {
-                const updates = {
-                    username: document.getElementById('editUsername').value,
-                    email: document.getElementById('editEmail').value,
-                    first_name: document.getElementById('editFirst').value,
-                    last_name: document.getElementById('editLast').value,
-                    password: document.getElementById('editPassword').value
-                };
-                if(!updates.username || !updates.email) throw new Error("Username dan Email wajib diisi");
-                await updateUserApi(id, updates);
-                await renderUsersTable();
-                await renderServersTable(); // karena owner mungkin berubah nama
-                showToast("User berhasil diperbarui", "success");
-            };
-            modal.classList.remove('hidden');
-        }
+// Dukungan tombol enter juga untuk form global (saat Edit/Create)
+$('modalBody').addEventListener('keyup', (e) => {
+  if(e.key === 'Enter' && e.target.tagName === 'INPUT') {
+    $('submitModalBtn').click();
+  }
+});
 
-        function openCreateUserModal() {
-            modalTitle.innerHTML = `<i class="fas fa-user-plus"></i> Buat User Baru`;
-            modalBody.innerHTML = `
-                <div><label>Username *</label><input id="newUsername" class="w-full" placeholder="username"></div>
-                <div><label>Email *</label><input id="newEmail" type="email" class="w-full" placeholder="user@example.com"></div>
-                <div><label>Nama Depan</label><input id="newFirst" class="w-full" placeholder="First"></div>
-                <div><label>Nama Belakang</label><input id="newLast" class="w-full" placeholder="Last"></div>
-                <div><label>Password *</label><input id="newPassword" type="password" class="w-full" placeholder="Min 8 karakter"></div>
-            `;
-            currentModalCallback = async () => {
-                const username = document.getElementById('newUsername').value.trim();
-                const email = document.getElementById('newEmail').value.trim();
-                const password = document.getElementById('newPassword').value;
-                if(!username || !email || !password) throw new Error("Username, Email, dan Password wajib diisi");
-                await createUserApi({ username, email, first_name: document.getElementById('newFirst').value, last_name: document.getElementById('newLast').value, password });
-                await renderUsersTable();
-                showToast("User berhasil dibuat", "success");
-            };
-            modal.classList.remove('hidden');
-        }
-
-        // Server Edit / Create
-        function openEditServerModal(serverId, currentName, currentDesc) {
-            modalTitle.innerHTML = `<i class="fas fa-server"></i> Edit Server #${serverId}`;
-            modalBody.innerHTML = `
-                <div><label>Nama Server</label><input id="editServerName" value="${escapeHtml(currentName)}" class="w-full"></div>
-                <div><label>Deskripsi</label><textarea id="editServerDesc" rows="2" class="w-full">${escapeHtml(currentDesc)}</textarea></div>
-            `;
-            currentModalCallback = async () => {
-                const newName = document.getElementById('editServerName').value.trim();
-                if(!newName) throw new Error("Nama server tidak boleh kosong");
-                await updateServerApi(serverId, { name: newName, description: document.getElementById('editServerDesc').value });
-                await renderServersTable();
-                showToast("Server diperbarui", "success");
-            };
-            modal.classList.remove('hidden');
-        }
-
-        async function openCreateServerModal() {
-            // perlu daftar user untuk dropdown owner
-            let usersList = [];
-            try { usersList = await fetchUsers(); } catch(e){}
-            modalTitle.innerHTML = `<i class="fas fa-plus-circle"></i> Buat Server Baru (Parameter Wajib)`;
-            modalBody.innerHTML = `
-                <div class="text-sm text-yellow-300 bg-yellow-950/40 p-3 rounded-lg mb-2"><i class="fas fa-info-circle"></i> Isi sesuai dengan resource panel Anda. Pastikan nest, egg, node ID valid.</div>
-                <div><label>Nama Server *</label><input id="srvName" class="w-full" placeholder="My Server"></div>
-                <div><label>Deskripsi</label><input id="srvDesc" class="w-full" placeholder="Opsional"></div>
-                <div><label>Owner (User ID) *</label><select id="srvUserId" class="w-full">${usersList.map(u => `<option value="${u.attributes.id}">${u.attributes.username} (ID:${u.attributes.id})</option>`).join('')}</select></div>
-                <div class="grid grid-cols-2 gap-3"><div><label>Nest ID *</label><input id="nestId" type="number" class="w-full" placeholder="1"></div><div><label>Egg ID *</label><input id="eggId" type="number" class="w-full" placeholder="1"></div></div>
-                <div><label>Node ID *</label><input id="nodeId" type="number" class="w-full" placeholder="1"></div>
-                <div class="grid grid-cols-2 gap-3"><div><label>Memory (MB)</label><input id="mem" type="number" value="1024"></div><div><label>Disk (MB)</label><input id="disk" type="number" value="5120"></div></div>
-                <div class="grid grid-cols-2 gap-3"><div><label>CPU (%)</label><input id="cpu" type="number" value="100"></div><div><label>Swap (MB)</label><input id="swap" type="number" value="0"></div></div>
-            `;
-            currentModalCallback = async () => {
-                const data = {
-                    name: document.getElementById('srvName').value.trim(),
-                    description: document.getElementById('srvDesc').value,
-                    user_id: document.getElementById('srvUserId').value,
-                    nest_id: document.getElementById('nestId').value,
-                    egg_id: document.getElementById('eggId').value,
-                    node_id: document.getElementById('nodeId').value,
-                    memory: document.getElementById('mem').value,
-                    disk: document.getElementById('disk').value,
-                    cpu: document.getElementById('cpu').value,
-                    swap: document.getElementById('swap').value,
-                };
-                if(!data.name || !data.user_id || !data.nest_id || !data.egg_id || !data.node_id) throw new Error("Semua field bertanda * harus diisi");
-                await createServerApi(data);
-                await renderServersTable();
-                showToast("Server berhasil dibuat!", "success");
-            };
-            modal.classList.remove('hidden');
-        }
-
-        // Helper umum
-        function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-        function showToast(msg, type="info") { alert(`[${type.toUpperCase()}] ${msg}`); } // simpel toast
-
-        // Login handler
-        async function handleConnect() {
-            const domain = document.getElementById('panelDomain').value.trim();
-            const key = document.getElementById('apiKey').value.trim();
-            if(!domain || !key) { loginErrorDiv.innerText = "Domain & API Key wajib diisi!"; loginErrorDiv.classList.remove('hidden'); return; }
-            panelDomain = domain; apiKey = key;
-            try {
-                // test API dengan fetch users
-                await apiRequest('/users', 'GET');
-                localStorage.setItem('rfn_domain', panelDomain);
-                localStorage.setItem('rfn_apikey', apiKey);
-                loginSection.classList.add('hidden');
-                dashboardSection.classList.remove('hidden');
-                logoutContainer.classList.remove('hidden');
-                activeDomainDisplay.innerText = panelDomain;
-                await renderUsersTable();
-                await renderServersTable();
-                loginErrorDiv.classList.add('hidden');
-            } catch(err) {
-                loginErrorDiv.innerText = "Koneksi gagal: " + err.message;
-                loginErrorDiv.classList.remove('hidden');
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem('rfn_domain');
-            localStorage.removeItem('rfn_apikey');
-            panelDomain = ""; apiKey = "";
-            loginSection.classList.remove('hidden');
-            dashboardSection.classList.add('hidden');
-            logoutContainer.classList.add('hidden');
-            document.getElementById('apiKey').value = "";
-            document.getElementById('panelDomain').value = "";
-        }
-
-        // Tabs
-        tabUsersBtn.addEventListener('click', () => {
-            usersPanel.classList.remove('hidden'); serversPanel.classList.add('hidden');
-            tabUsersBtn.classList.add('bg-indigo-600','text-white'); tabServersBtn.classList.remove('bg-indigo-600','text-white'); tabServersBtn.classList.add('text-gray-300');
-            renderUsersTable();
-        });
-        tabServersBtn.addEventListener('click', () => {
-            usersPanel.classList.add('hidden'); serversPanel.classList.remove('hidden');
-            tabServersBtn.classList.add('bg-indigo-600','text-white'); tabUsersBtn.classList.remove('bg-indigo-600','text-white'); tabUsersBtn.classList.add('text-gray-300');
-            renderServersTable();
-        });
-
-        // Event listeners
-        connectBtn.addEventListener('click', handleConnect);
-        logoutBtn.addEventListener('click', logout);
-        refreshBtn.addEventListener('click', () => { if(usersPanel.classList.contains('hidden')) renderServersTable(); else renderUsersTable(); });
-        document.getElementById('createUserBtn').addEventListener('click', openCreateUserModal);
-        document.getElementById('createServerBtn').addEventListener('click', openCreateServerModal);
-        function closeModal() { modal.classList.add('hidden'); currentModalCallback = null; }
-        modalCancelBtn.addEventListener('click', closeModal);
-        closeModalBtn.addEventListener('click', closeModal);
-        modalSubmitBtn.addEventListener('click', async () => { if(currentModalCallback) { try { await currentModalCallback(); closeModal(); } catch(err) { showToast(err.message, "error"); } } });
-
-        // auto load from localStorage
-        const savedDomain = localStorage.getItem('rfn_domain');
-        const savedKey = localStorage.getItem('rfn_apikey');
-        if(savedDomain && savedKey) {
-            document.getElementById('panelDomain').value = savedDomain;
-            document.getElementById('apiKey').value = savedKey;
-            handleConnect();
-        }
-        // styling default tab
-        tabUsersBtn.classList.add('bg-indigo-600','text-white');
-        tabServersBtn.classList.add('text-gray-300');
-    </script>
+// Auto Login
+window.onload = () => {
+  const c = getCreds();
+  if(c.url && c.key) {
+    $('panelDomain').value = c.url; $('apiKey').value = c.key;
+    $('loginBtn').click();
+  }
+};
+</script>
 </body>
 </html>
